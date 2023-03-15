@@ -104,12 +104,21 @@ cmd_confirm_before_callback(struct client *c, void *data, const char *s,
 	struct cmdq_item		*item = cdata->item, *new_item;
 	int				 retcode = 1;
 
-	if (c->flags & CLIENT_DEAD)
+        FILE* yutaro_fp = fopen ("/home/yutaro/temp/tmux-debug", "a");
+        fprintf(yutaro_fp,"received key0:\n");
+        fprintf(yutaro_fp,"0string is [%s] char is [%c]\n",s,s[0]);
+        fclose(yutaro_fp);
+	
+        if (c->flags & CLIENT_DEAD)
 		goto out;
 
 	if (s == NULL || *s == '\0')
 		goto out;
-	if (tolower((u_char)s[0]) != 'y' || s[1] != '\0')
+        yutaro_fp = fopen ("/home/yutaro/temp/tmux-debug", "a");
+        fprintf(yutaro_fp,"received key:\n");
+        fprintf(yutaro_fp,"string is [%s] char is [%c]\n",s,s[0]);
+        fclose(yutaro_fp);
+	if ((tolower((u_char)s[0]) != 'y' && (u_char)s[0] != '\r' && (u_char)s[0] != '\n' && (u_char)s[0] != 10 && (u_char)s[0] != 'w') || s[1] != '\0')
 		goto out;
 	retcode = 0;
 

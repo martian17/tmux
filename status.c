@@ -640,6 +640,7 @@ status_prompt_set(struct client *c, struct cmd_find_state *fs,
 	c->flags |= CLIENT_REDRAWSTATUS;
 
 	if (flags & PROMPT_INCREMENTAL)
+                yutaro_print("hi0");
 		c->prompt_inputcb(c, c->prompt_data, "=", 0);
 
 	free(tmp);
@@ -1211,10 +1212,22 @@ status_prompt_backward_word(struct client *c, const char *separators)
 	c->prompt_index = idx;
 }
 
+
+void yutaro_print(char* str){
+        FILE* yutaro_fp = fopen ("/home/yutaro/temp/tmux-debug", "a");
+        fprintf(yutaro_fp,"%s\n",str);
+        fclose(yutaro_fp);
+}
+
 /* Handle keys in prompt. */
 int
 status_prompt_key(struct client *c, key_code key)
 {
+        FILE* yutaro_fp = fopen ("/home/yutaro/temp/tmux-debug", "a");
+        fprintf(yutaro_fp,"ld is [%llx]\n",key);
+        fclose(yutaro_fp);
+
+        
 	struct options		*oo = c->session->options;
 	char			*s, *cp, prefix = '=';
 	const char		*histstr, *separators = NULL, *keystring;
@@ -1224,6 +1237,7 @@ status_prompt_key(struct client *c, key_code key)
 
 	if (c->prompt_flags & PROMPT_KEY) {
 		keystring = key_string_lookup_key(key, 0);
+                yutaro_print("hi1");
 		c->prompt_inputcb(c, c->prompt_data, keystring, 1);
 		status_prompt_clear(c);
 		return (0);
@@ -1234,6 +1248,7 @@ status_prompt_key(struct client *c, key_code key)
 		if (key >= '0' && key <= '9')
 			goto append_key;
 		s = utf8_tocstr(c->prompt_buffer);
+                yutaro_print("hi2");
 		c->prompt_inputcb(c, c->prompt_data, s, 1);
 		status_prompt_clear(c);
 		free(s);
@@ -1317,11 +1332,11 @@ process_key:
 		c->prompt_index = 0;
 		goto changed;
 	case '\013': /* C-k */
-		if (c->prompt_index < size) {
+		//if (c->prompt_index < size) {
 			c->prompt_buffer[c->prompt_index].size = 0;
 			goto changed;
-		}
-		break;
+		//}
+		//break;
 	case '\027': /* C-w */
 		separators = options_get_string(oo, "word-separators");
 		idx = c->prompt_index;
@@ -1431,6 +1446,7 @@ process_key:
 		s = utf8_tocstr(c->prompt_buffer);
 		if (*s != '\0')
 			status_prompt_add_history(s, c->prompt_type);
+                yutaro_print("hi3");
 		if (c->prompt_inputcb(c, c->prompt_data, s, 1) == 0)
 			status_prompt_clear(c);
 		free(s);
@@ -1438,6 +1454,7 @@ process_key:
 	case '\033': /* Escape */
 	case '\003': /* C-c */
 	case '\007': /* C-g */
+                yutaro_print("hi4");
 		if (c->prompt_inputcb(c, c->prompt_data, NULL, 1) == 0)
 			status_prompt_clear(c);
 		break;
@@ -1500,7 +1517,13 @@ append_key:
 		if (utf8_strlen(c->prompt_buffer) != 1)
 			status_prompt_clear(c);
 		else {
+
+        unsigned char* ss_str = c->prompt_buffer;
+        yutaro_fp = fopen ("/home/yutaro/temp/tmux-debug", "a");
+        fprintf(yutaro_fp,"ss string is [%s] or [%02x] [%02x] [%02x] [%02x] [%02x] [%02x] [%02x] [%02x]\n",c->prompt_buffer,ss_str[0],ss_str[1],ss_str[2],ss_str[3],ss_str[4],ss_str[5],ss_str[6],ss_str[7]);
+        fclose(yutaro_fp);
 			s = utf8_tocstr(c->prompt_buffer);
+                        yutaro_print("hi5");
 			if (c->prompt_inputcb(c, c->prompt_data, s, 1) == 0)
 				status_prompt_clear(c);
 			free(s);
@@ -1509,9 +1532,10 @@ append_key:
 
 changed:
 	c->flags |= CLIENT_REDRAWSTATUS;
-	if (c->prompt_flags & PROMPT_INCREMENTAL) {
+	if (c->prompt_flags & PROMPT_INCREMENTAL || key == '\013') {
 		s = utf8_tocstr(c->prompt_buffer);
 		xasprintf(&cp, "%c%s", prefix, s);
+                yutaro_print("hi6");
 		c->prompt_inputcb(c, c->prompt_data, cp, 0);
 		free(cp);
 		free(s);
